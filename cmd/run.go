@@ -26,6 +26,7 @@ import (
 	httpmiddleware "github.com/openfga/openfga/internal/middleware/http"
 	"github.com/openfga/openfga/pkg/encoder"
 	"github.com/openfga/openfga/pkg/logger"
+	"github.com/openfga/openfga/pkg/plugin"
 	"github.com/openfga/openfga/pkg/telemetry"
 	"github.com/openfga/openfga/server"
 	"github.com/openfga/openfga/server/authn"
@@ -172,6 +173,9 @@ type Config struct {
 	// ResolveNodeLimit indicates how deeply nested an authorization model can be.
 	ResolveNodeLimit uint32
 
+	// Plugin path defines the filesystem path to load OpenFGA plugins (.so files) from.
+	PluginPath string
+
 	Datastore  DatastoreConfig
 	GRPC       GRPCConfig
 	HTTP       HTTPConfig
@@ -190,6 +194,7 @@ func DefaultConfig() *Config {
 		ResolveNodeLimit:              25,
 		ListObjectsDeadline:           3 * time.Second, // there is a 3-second timeout elsewhere
 		ListObjectsMaxResults:         1000,
+		PluginPath:                    "./plugins",
 		Datastore: DatastoreConfig{
 			Engine:       "memory",
 			MaxCacheSize: 100000,
@@ -330,13 +335,19 @@ func runServer(ctx context.Context, config *Config) error {
 		return err
 	}
 
+	pm, err := plugin.LoadPlugins(config.PluginPath)
+	if err != nil {
+		return err
+	}
+
+	authorizer := pm.AuthorizerMiddleware()
+
 	logger := buildLogger(config.Log.Format)
 	tracer := telemetry.NewNoopTracer()
 	meter := telemetry.NewNoopMeter()
 	tokenEncoder := encoder.NewBase64Encoder()
 
 	var datastore storage.OpenFGADatastore
-	var err error
 	switch config.Datastore.Engine {
 	case "memory":
 		datastore = memory.New(tracer, config.MaxTuplesPerWrite, config.MaxTypesPerAuthorizationModel)
@@ -386,6 +397,7 @@ func runServer(ctx context.Context, config *Config) error {
 	unaryServerInterceptors := []grpc.UnaryServerInterceptor{
 		grpc_validator.UnaryServerInterceptor(),
 		grpc_auth.UnaryServerInterceptor(middleware.AuthFunc(authenticator)),
+		grpc.UnaryServerInterceptor(authorizer),
 		middleware.NewLoggingInterceptor(logger),
 	}
 
