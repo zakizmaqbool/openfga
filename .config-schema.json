@@ -1,5 +1,10 @@
 {
     "properties": {
+        "prometheusPort": {
+            "description": "The port where metrics will be available",
+            "type": "integer",
+            "default": 2112
+        },
         "maxTuplesPerWrite": {
             "description": "The maximum allowed number of tuples per Write transaction.",
             "type": "integer",

@@ -188,6 +188,18 @@ OpenFGA's MySQL Storage Adapter was contributed to OpenFGA by [@twintag](https:/
 
 The OpenFGA team will do its best to address all production issues with high priority.
 
+## Load testing
+
+1. Run `docker-compose up --build openfga`. OpenFGA will start exposing metrics at `http://localhost:2112/metrics`.
+1. Create a store:
+    ```shell
+    STORE_ID=$(curl --location --request POST 'http://localhost:8080/stores' \
+          --header 'Content-Type: application/json' \
+          --data-raw '{ "locality": "US1", "name": "load testing store" }' | jq '.id')
+    ```
+1. Run `cd scripts && k6 run main.js` to generate load.
+1. Open `http://localhost:9090/graph` to view the Prometheus dashboard. For example, you can query the metric `go_goroutines`.
+
 ## Contributing
 
 See [CONTRIBUTING](https://github.com/openfga/.github/blob/main/CONTRIBUTING.md).

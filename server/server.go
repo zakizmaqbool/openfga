@@ -50,6 +50,7 @@ type Dependencies struct {
 }
 
 type Config struct {
+	PrometheusPort         uint32
 	ResolveNodeLimit       uint32
 	ChangelogHorizonOffset int
 	ListObjectsDeadline    time.Duration

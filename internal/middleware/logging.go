@@ -6,8 +6,17 @@ import (
 
 	"github.com/openfga/openfga/pkg/logger"
 	serverErrors "github.com/openfga/openfga/server/errors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+)
+
+var (
+	tookTimeCounter = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "took_time",
+		Help: "The total time (in ms) that the request took",
+	})
 )
 
 func NewLoggingInterceptor(logger logger.Logger) grpc.UnaryServerInterceptor {
@@ -16,10 +25,14 @@ func NewLoggingInterceptor(logger logger.Logger) grpc.UnaryServerInterceptor {
 
 		resp, err := handler(ctx, req)
 
+		tookTime := time.Since(start)
+
 		fields := []zap.Field{
 			zap.String("method", info.FullMethod),
-			zap.Duration("took", time.Since(start)),
+			zap.Duration("took", tookTime),
 		}
+
+		tookTimeCounter.Set(float64(tookTime.Milliseconds()))
 
 		if err != nil {
 			if internalError, ok := err.(serverErrors.InternalError); ok {
@@ -44,10 +57,14 @@ func NewStreamingLoggingInterceptor(logger logger.Logger) grpc.StreamServerInter
 
 		err := handler(srv, stream)
 
+		tookTime := time.Since(start)
+
 		fields := []zap.Field{
 			zap.String("method", info.FullMethod),
-			zap.Duration("took", time.Since(start)),
+			zap.Duration("took", tookTime),
 		}
+
+		tookTimeCounter.Set(float64(tookTime.Milliseconds()))
 
 		if err != nil {
 			if internalError, ok := err.(serverErrors.InternalError); ok {

@@ -39,6 +39,7 @@ import (
 	"github.com/openfga/openfga/storage/memory"
 	"github.com/openfga/openfga/storage/mysql"
 	"github.com/openfga/openfga/storage/postgres"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -172,6 +173,9 @@ type Config struct {
 	// ResolveNodeLimit indicates how deeply nested an authorization model can be.
 	ResolveNodeLimit uint32
 
+	// ResolveNodeLimit indicates how deeply nested an authorization model can be.
+	PrometheusPort uint32
+
 	Datastore  DatastoreConfig
 	GRPC       GRPCConfig
 	HTTP       HTTPConfig
@@ -184,6 +188,7 @@ type Config struct {
 // DefaultConfig returns the OpenFGA server default configurations.
 func DefaultConfig() *Config {
 	return &Config{
+		PrometheusPort:                2112,
 		MaxTuplesPerWrite:             100,
 		MaxTypesPerAuthorizationModel: 100,
 		ChangelogHorizonOffset:        0,
@@ -215,11 +220,11 @@ func DefaultConfig() *Config {
 			Format: "text",
 		},
 		Playground: PlaygroundConfig{
-			Enabled: true,
+			Enabled: false,
 			Port:    3000,
 		},
 		Profiler: ProfilerConfig{
-			Enabled: false,
+			Enabled: true,
 			Addr:    ":3001",
 		},
 	}
@@ -432,6 +437,13 @@ func RunServer(ctx context.Context, config *Config) error {
 					logger.Fatal("failed to start pprof profiler", zap.Error(err))
 				}
 			}
+
+		}()
+
+		go func() {
+			logger.Info(fmt.Sprintf("🔬 starting prometheus on localhost:%d", config.PrometheusPort))
+			http.Handle("/metrics", promhttp.Handler())
+			http.ListenAndServe(fmt.Sprintf(":%d", config.PrometheusPort), nil)
 		}()
 	}
 

@@ -20,7 +20,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    image: openfga/openfga:latest
+    build: .
     container_name: migrate
     command: migrate --datastore-engine postgres --datastore-uri 'postgres://postgres:password@postgres:5432/postgres?sslmode=disable'
     networks:
@@ -30,11 +30,20 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-    image: openfga/openfga:latest
+    build: .
     container_name: openfga
     command: run --datastore-engine postgres --datastore-uri 'postgres://postgres:password@postgres:5432/postgres?sslmode=disable'
     networks:
       - default
     ports:
       - "8080:8080"
-      - "3000:3000"
+      - "2112:2112"
+
+  prometheus:
+    image: bitnami/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./prometheus/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml"
+    networks:
+      - default
