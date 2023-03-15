@@ -4283,6 +4283,42 @@ tests:
                 user: company:abc
             expectation:
 
+  - name: ttu_with_computed_userset_as_userset_typerestriction
+    stages:
+      - model: |
+          type user
+          type repo
+            relations
+              define owner: [organization] as self
+              define reader as repo_admin from owner
+          type organization
+            relations
+              define member: [user] as self
+              define repo_admin: [organization#member] as self
+        tuples:
+          - user: user:erik
+            relation: member
+            object: organization:openfga
+          - user: organization:openfga#member
+            relation: repo_admin
+            object: organization:openfga
+          - user: organization:openfga
+            relation: owner
+            object: repo:openfga/openfga
+        checkAssertions:
+          - tuple:
+              user: user:erik
+              relation: reader
+              object: repo:openfga/openfga
+            expectation: true
+        listObjectsAssertions:
+          - request:
+              user: user:erik
+              type: repo
+              relation: reader
+            expectation:
+              - repo:openfga/openfga
+
   - name: exclusion_for_some_relations
     stages:
       - model: |
