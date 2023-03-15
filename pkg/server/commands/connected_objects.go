@@ -349,7 +349,9 @@ func (c *ConnectedObjectsCommand) reverseExpandTupleToUserset(
 		foundObject := tk.GetObject()
 		foundObjectType, foundObjectID := tuple.SplitObject(foundObject)
 
-		if _, ok := foundObjectsMap.LoadOrStore(foundObject, struct{}{}); ok {
+		key := tuple.ToObjectRelationString(foundObject, tk.GetRelation())
+
+		if _, ok := foundObjectsMap.LoadOrStore(key, struct{}{}); ok {
 			// todo(jon-whit): we could optimize this by avoiding reading this
 			// from the database in the first place
 
