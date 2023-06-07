@@ -129,6 +129,7 @@ func (s *Server) ListObjects(ctx context.Context, req *openfgapb.ListObjectsRequ
 			ds,
 			checkConcurrencyLimit,
 		),
+		OptimizeIntersectionExclusion: false,
 	}
 
 	return q.Execute(ctx, &openfgapb.ListObjectsRequest{
@@ -188,6 +189,7 @@ func (s *Server) StreamedListObjects(req *openfgapb.StreamedListObjectsRequest, 
 			storage.NewCombinedTupleReader(s.datastore, req.ContextualTuples.GetTupleKeys()),
 			checkConcurrencyLimit,
 		),
+		OptimizeIntersectionExclusion: true,
 	}
 
 	req.AuthorizationModelId = modelID
