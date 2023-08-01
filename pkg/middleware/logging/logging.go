@@ -9,9 +9,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/openfga/openfga/pkg/logger"
-	"github.com/openfga/openfga/pkg/middleware/requestid"
 	serverErrors "github.com/openfga/openfga/pkg/server/errors"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
@@ -24,8 +22,6 @@ const (
 	grpcMethodKey      = "grpc_method"
 	grpcTypeKey        = "grpc_type"
 	grpcCodeKey        = "grpc_code"
-	requestIDKey       = "request_id"
-	traceIDKey         = "trace_id"
 	rawRequestKey      = "raw_request"
 	rawResponseKey     = "raw_response"
 	internalErrorKey   = "internal_error"
@@ -98,15 +94,6 @@ func reportable(l logger.Logger) interceptors.CommonReportableFunc {
 			zap.String(grpcServiceKey, c.Service),
 			zap.String(grpcMethodKey, c.Method),
 			zap.String(grpcTypeKey, string(c.Typ)),
-		}
-
-		spanCtx := trace.SpanContextFromContext(ctx)
-		if spanCtx.HasTraceID() {
-			fields = append(fields, zap.String(traceIDKey, spanCtx.TraceID().String()))
-		}
-
-		if requestID, ok := requestid.FromContext(ctx); ok {
-			fields = append(fields, zap.String(requestIDKey, requestID))
 		}
 
 		zapLogger := l.(*logger.ZapLogger)

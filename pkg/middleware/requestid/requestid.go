@@ -5,52 +5,49 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
 const (
-	requestIDCtxKey   = "request-id-context-key"
-	requestIDTraceKey = "request_id"
-	requestIDHeader   = "x-request-id"
+	requestIDCtxKey = "request-id"
+	requestIDHeader = "x-request-id"
 )
-
-// FromContext extracts the requestid from the context, if it exists.
-func FromContext(ctx context.Context) (string, bool) {
-	if md, ok := metadata.FromOutgoingContext(ctx); ok {
-		if vals := md.Get(requestIDCtxKey); len(vals) > 0 {
-			return vals[0], true
-		}
-	}
-
-	return "", false
-}
 
 // NewUnaryInterceptor creates a grpc.UnaryServerInterceptor which must
 // come after the trace interceptor and before the logging interceptor.
+// If tracing is enabled, request ID is set to be the trace ID.
+// If tracing is disabled, request ID is a random UUID.
 func NewUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return interceptors.UnaryServerInterceptor(reportable())
 }
 
 // NewStreamingInterceptor creates a grpc.StreamServerInterceptor which must
 // come after the trace interceptor and before the logging interceptor.
+// If tracing is enabled, request ID is set to be the trace ID.
+// If tracing is disabled, request ID is a random UUID.
 func NewStreamingInterceptor() grpc.StreamServerInterceptor {
 	return interceptors.StreamServerInterceptor(reportable())
 }
 
 func reportable() interceptors.CommonReportableFunc {
 	return func(ctx context.Context, c interceptors.CallMeta) (interceptors.Reporter, context.Context) {
-		id, _ := uuid.NewRandom()
-		requestID := id.String()
+		spanCtx := trace.SpanContextFromContext(ctx)
 
-		// Add the requestID to the context
-		ctx = metadata.AppendToOutgoingContext(ctx, requestIDCtxKey, requestID)
+		requestID := ""
+		if !spanCtx.TraceID().IsValid() {
+			// If trace was not enabled, we will need to generate our own ULID
+			id, _ := uuid.NewRandom()
+			requestID = id.String()
+		} else {
+			requestID = spanCtx.TraceID().String()
+		}
 
-		// Add the requestID to the span
-		trace.SpanFromContext(ctx).SetAttributes(attribute.String(requestIDTraceKey, requestID))
+		// Add the requestID to the context tags
+		grpc_ctxtags.Extract(ctx).Set(requestIDCtxKey, requestID)
 
 		// Add the requestID to the response headers
 		_ = grpc.SetHeader(ctx, metadata.Pairs(requestIDHeader, requestID))

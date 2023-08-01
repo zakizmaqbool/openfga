@@ -612,15 +612,13 @@ func RunServer(ctx context.Context, config *Config) error {
 	}
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
-		requestid.NewUnaryInterceptor(),
-		grpc_validator.UnaryServerInterceptor(),
 		grpc_ctxtags.UnaryServerInterceptor(),
+		grpc_validator.UnaryServerInterceptor(),
 	}
 
 	streamingInterceptors := []grpc.StreamServerInterceptor{
-		requestid.NewStreamingInterceptor(),
-		grpc_validator.StreamServerInterceptor(),
 		grpc_ctxtags.StreamServerInterceptor(),
+		grpc_validator.StreamServerInterceptor(),
 	}
 
 	if config.Metrics.Enabled {
@@ -638,6 +636,7 @@ func RunServer(ctx context.Context, config *Config) error {
 	}
 
 	unaryInterceptors = append(unaryInterceptors,
+		requestid.NewUnaryInterceptor(),
 		storeid.NewUnaryInterceptor(),
 		logging.NewLoggingInterceptor(logger),
 		grpc_auth.UnaryServerInterceptor(authnmw.AuthFunc(authenticator)),
@@ -647,6 +646,7 @@ func RunServer(ctx context.Context, config *Config) error {
 		grpc_auth.StreamServerInterceptor(authnmw.AuthFunc(authenticator)),
 		// The following interceptors wrap the server stream with our own
 		// wrapper and must come last.
+		requestid.NewStreamingInterceptor(),
 		storeid.NewStreamingInterceptor(),
 		logging.NewStreamingLoggingInterceptor(logger),
 	)
