@@ -299,16 +299,16 @@ func TestListObjectsRespectsMaxResults(t *testing.T, ds storage.OpenFGADatastore
 
 				require.NotNil(t, res)
 				require.NoError(t, err)
-				require.LessOrEqual(t, len(res.Objects), int(test.maxResults))
-				require.GreaterOrEqual(t, len(res.Objects), int(test.minimumResultsExpected))
-				require.Subset(t, test.allResults, res.Objects)
+				require.LessOrEqual(t, len(res.Objects()), int(test.maxResults))
+				require.GreaterOrEqual(t, len(res.Objects()), int(test.minimumResultsExpected))
+				require.Subset(t, test.allResults, res.Objects())
 			})
 		})
 	}
 }
 
 // Used to avoid compiler optimizations (see https://dave.cheney.net/2013/06/30/how-to-write-benchmarks-in-go)
-var listObjectsResponse *openfgav1.ListObjectsResponse //nolint
+var listObjectsResponse *commands.ListObjectsResponse //nolint
 
 func BenchmarkListObjectsWithReverseExpand(b *testing.B, ds storage.OpenFGADatastore) {
 
@@ -361,7 +361,7 @@ func BenchmarkListObjectsWithReverseExpand(b *testing.B, ds storage.OpenFGADatas
 
 	listObjectsQuery := commands.NewListObjectsQuery(ds)
 
-	var r *openfgav1.ListObjectsResponse
+	var r *commands.ListObjectsResponse
 
 	ctx = typesystem.ContextWithTypesystem(ctx, typesystem.New(model))
 
@@ -423,7 +423,7 @@ func BenchmarkListObjectsWithConcurrentChecks(b *testing.B, ds storage.OpenFGADa
 
 	listObjectsQuery := commands.NewListObjectsQuery(ds)
 
-	var r *openfgav1.ListObjectsResponse
+	var r *commands.ListObjectsResponse
 
 	ctx = typesystem.ContextWithTypesystem(ctx, typesystem.New(model))
 

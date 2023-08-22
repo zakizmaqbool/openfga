@@ -57,6 +57,35 @@ type ListObjectsQuery struct {
 	checkOptions []graph.LocalCheckerOption
 }
 
+type ResolutionMetadata struct {
+	QueryCount uint32
+}
+
+type SingleListObjectsResponse struct {
+	Object             string
+	ResolutionMetadata ResolutionMetadata
+}
+
+type ListObjectsResponse struct {
+	Response []SingleListObjectsResponse
+}
+
+func (l ListObjectsResponse) Objects() []string {
+	var objects []string
+	for _, response := range l.Response {
+		objects = append(objects, response.Object)
+	}
+	return objects
+}
+
+func (l ListObjectsResponse) QueryCount() uint32 {
+	var queryCount uint32
+	for _, response := range l.Response {
+		queryCount += response.ResolutionMetadata.QueryCount
+	}
+	return queryCount
+}
+
 type ListObjectsQueryOption func(d *ListObjectsQuery)
 
 func WithListObjectsDeadline(deadline time.Duration) ListObjectsQueryOption {
@@ -116,8 +145,9 @@ func NewListObjectsQuery(ds storage.RelationshipTupleReader, opts ...ListObjects
 }
 
 type ListObjectsResult struct {
-	ObjectID string
-	Err      error
+	ObjectID   string
+	QueryCount uint32
+	Err        error
 }
 
 // listObjectsRequest captures the RPC request definition interface for the ListObjects API.
@@ -242,7 +272,7 @@ func (q *ListObjectsQuery) evaluate(
 			if res.ResultStatus == connectedobjects.NoFurtherEvalStatus {
 				noFurtherEvalRequiredCounter.Inc()
 
-				sendObject(res.Object, foundCount, maxResults, resultsChan)
+				sendObject(res.Object, res.QueryCount, foundCount, maxResults, resultsChan)
 
 				continue
 			}
@@ -273,7 +303,9 @@ func (q *ListObjectsQuery) evaluate(
 				}
 
 				if resp.Allowed {
-					sendObject(res.Object, foundCount, maxResults, resultsChan)
+					sendObject(res.Object,
+						res.QueryCount+resp.GetResolutionMetadata().DatastoreQueryCount,
+						foundCount, maxResults, resultsChan)
 				}
 			}(res)
 		}
@@ -288,11 +320,11 @@ func (q *ListObjectsQuery) evaluate(
 	return nil
 }
 
-func sendObject(object string, foundCount *uint32, maxResults uint32, resultsChan chan<- ListObjectsResult) {
+func sendObject(object string, queryCount uint32, foundCount *uint32, maxResults uint32, resultsChan chan<- ListObjectsResult) {
 	if foundCount != nil && atomic.AddUint32(foundCount, 1) > maxResults {
 		return
 	}
-	resultsChan <- ListObjectsResult{ObjectID: object}
+	resultsChan <- ListObjectsResult{ObjectID: object, QueryCount: queryCount}
 }
 
 // Execute the ListObjectsQuery, returning a list of object IDs up to a maximum of q.listObjectsMaxResults
@@ -300,7 +332,7 @@ func sendObject(object string, foundCount *uint32, maxResults uint32, resultsCha
 func (q *ListObjectsQuery) Execute(
 	ctx context.Context,
 	req *openfgav1.ListObjectsRequest,
-) (*openfgav1.ListObjectsResponse, error) {
+) (*ListObjectsResponse, error) {
 
 	resultsChan := make(chan ListObjectsResult, 1)
 	maxResults := q.listObjectsMaxResults
@@ -320,7 +352,7 @@ func (q *ListObjectsQuery) Execute(
 		return nil, err
 	}
 
-	objects := make([]string, 0)
+	objects := make([]SingleListObjectsResponse, 0)
 
 	for {
 		select {
@@ -330,8 +362,8 @@ func (q *ListObjectsQuery) Execute(
 				ctx, "list objects timeout with list object configuration timeout",
 				zap.String("timeout duration", q.listObjectsDeadline.String()),
 			)
-			return &openfgav1.ListObjectsResponse{
-				Objects: objects,
+			return &ListObjectsResponse{
+				Response: objects,
 			}, nil
 
 		case result, channelOpen := <-resultsChan:
@@ -343,11 +375,14 @@ func (q *ListObjectsQuery) Execute(
 			}
 
 			if !channelOpen {
-				return &openfgav1.ListObjectsResponse{
-					Objects: objects,
+				return &ListObjectsResponse{
+					Response: objects,
 				}, nil
 			}
-			objects = append(objects, result.ObjectID)
+			objects = append(objects, SingleListObjectsResponse{
+				Object:             result.ObjectID,
+				ResolutionMetadata: ResolutionMetadata{QueryCount: result.QueryCount},
+			})
 		}
 	}
 }

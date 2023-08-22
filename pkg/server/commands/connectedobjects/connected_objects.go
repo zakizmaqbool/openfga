@@ -168,6 +168,7 @@ const (
 
 type ConnectedObjectsResult struct {
 	Object       string
+	QueryCount   uint32
 	ResultStatus ConditionalResultStatus
 }
 
@@ -178,7 +179,7 @@ func (c *ConnectedObjectsQuery) Execute(
 	req *ConnectedObjectsRequest,
 	resultChan chan<- *ConnectedObjectsResult,
 ) error {
-	return c.execute(ctx, req, resultChan, nil)
+	return c.execute(ctx, req, resultChan, nil, 0)
 }
 
 func (c *ConnectedObjectsQuery) execute(
@@ -186,6 +187,7 @@ func (c *ConnectedObjectsQuery) execute(
 	req *ConnectedObjectsRequest,
 	resultChan chan<- *ConnectedObjectsResult,
 	currentIngress *graph.RelationshipIngress,
+	currentQueryCount uint32,
 ) error {
 	ctx, span := tracer.Start(ctx, "connectedObjects.Execute", trace.WithAttributes(
 		attribute.String("target_type", req.ObjectType),
@@ -242,7 +244,7 @@ func (c *ConnectedObjectsQuery) execute(
 			}
 
 			if sourceUserType == req.ObjectType && sourceUserRel == req.Relation {
-				c.trySendCandidate(ctx, currentIngress, sourceUserObj, resultChan)
+				c.trySendCandidate(ctx, currentIngress, sourceUserObj, currentQueryCount, resultChan)
 			}
 		}
 	}
@@ -281,7 +283,7 @@ func (c *ConnectedObjectsQuery) execute(
 
 			switch innerLoopIngress.Type {
 			case graph.DirectIngress:
-				return c.reverseExpandDirect(subgctx, r, resultChan)
+				return c.reverseExpandDirect(subgctx, r, resultChan, currentQueryCount)
 			case graph.ComputedUsersetIngress:
 				// lookup the rewritten target relation on the computed_userset ingress
 				return c.execute(subgctx, &ConnectedObjectsRequest{
@@ -295,9 +297,9 @@ func (c *ConnectedObjectsQuery) execute(
 						},
 					},
 					ContextualTuples: r.contextualTuples,
-				}, resultChan, innerLoopIngress)
+				}, resultChan, innerLoopIngress, currentQueryCount)
 			case graph.TupleToUsersetIngress:
-				return c.reverseExpandTupleToUserset(subgctx, r, resultChan)
+				return c.reverseExpandTupleToUserset(subgctx, r, resultChan, currentQueryCount)
 			default:
 				return fmt.Errorf("unsupported ingress type")
 			}
@@ -315,11 +317,7 @@ type reverseExpandRequest struct {
 	contextualTuples []*openfgav1.TupleKey
 }
 
-func (c *ConnectedObjectsQuery) reverseExpandTupleToUserset(
-	ctx context.Context,
-	req *reverseExpandRequest,
-	resultChan chan<- *ConnectedObjectsResult,
-) error {
+func (c *ConnectedObjectsQuery) reverseExpandTupleToUserset(ctx context.Context, req *reverseExpandRequest, resultChan chan<- *ConnectedObjectsResult, currentQueryCount uint32) error {
 	ctx, span := tracer.Start(ctx, "reverseExpandTupleToUserset", trace.WithAttributes(
 		attribute.String("ingress", req.ingress.String()),
 		attribute.String("source.user", req.sourceUserRef.String()),
@@ -387,18 +385,14 @@ func (c *ConnectedObjectsQuery) reverseExpandTupleToUserset(
 				Relation:         targetObjectRel,
 				User:             sourceUserRef,
 				ContextualTuples: req.contextualTuples,
-			}, resultChan, req.ingress)
+			}, resultChan, req.ingress, currentQueryCount+1)
 		})
 	}
 
 	return subg.Wait()
 }
 
-func (c *ConnectedObjectsQuery) reverseExpandDirect(
-	ctx context.Context,
-	req *reverseExpandRequest,
-	resultChan chan<- *ConnectedObjectsResult,
-) error {
+func (c *ConnectedObjectsQuery) reverseExpandDirect(ctx context.Context, req *reverseExpandRequest, resultChan chan<- *ConnectedObjectsResult, currentQueryCount uint32) error {
 	ctx, span := tracer.Start(ctx, "reverseExpandDirect", trace.WithAttributes(
 		attribute.String("ingress", req.ingress.String()),
 		attribute.String("source.user", req.sourceUserRef.String()),
@@ -492,14 +486,14 @@ func (c *ConnectedObjectsQuery) reverseExpandDirect(
 				Relation:         targetObjectRel,
 				User:             sourceUserRef,
 				ContextualTuples: req.contextualTuples,
-			}, resultChan, req.ingress)
+			}, resultChan, req.ingress, currentQueryCount+1)
 		})
 	}
 
 	return subg.Wait()
 }
 
-func (c *ConnectedObjectsQuery) trySendCandidate(ctx context.Context, ingress *graph.RelationshipIngress, candidateObject string, candidateChan chan<- *ConnectedObjectsResult) {
+func (c *ConnectedObjectsQuery) trySendCandidate(ctx context.Context, ingress *graph.RelationshipIngress, candidateObject string, queryCount uint32, candidateChan chan<- *ConnectedObjectsResult) {
 	_, span := tracer.Start(ctx, "trySendCandidate", trace.WithAttributes(
 		attribute.String("object", candidateObject),
 		attribute.Bool("sent", false),
@@ -517,6 +511,7 @@ func (c *ConnectedObjectsQuery) trySendCandidate(ctx context.Context, ingress *g
 		candidateChan <- &ConnectedObjectsResult{
 			Object:       candidateObject,
 			ResultStatus: resultStatus,
+			QueryCount:   queryCount,
 		}
 		span.SetAttributes(attribute.Bool("sent", true))
 	}

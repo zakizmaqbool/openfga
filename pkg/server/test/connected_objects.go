@@ -58,10 +58,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.RequiresFurtherEvalStatus,
+					QueryCount:   1,
 				},
 				{
 					Object:       "document:2",
 					ResultStatus: connectedobjects.RequiresFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -102,6 +104,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.RequiresFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -137,10 +140,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:doc1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 				{
 					Object:       "document:doc3",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -176,10 +181,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:doc1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 				{
 					Object:       "document:doc3",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -216,10 +223,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:doc1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 				{
 					Object:       "document:doc3",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -274,10 +283,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:doc1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   4,
 				},
 				{
 					Object:       "document:doc2",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   5,
 				},
 			},
 		},
@@ -311,14 +322,17 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "folder:folder1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 				{
 					Object:       "folder:folder2",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 				{
 					Object:       "folder:folder3",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   3,
 				},
 			},
 		},
@@ -380,10 +394,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "group:opensource",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 				{
 					Object:       "group:eng",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -412,6 +428,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "group:iam",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -445,6 +462,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -481,6 +499,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -518,6 +537,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "trial:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -553,6 +573,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -580,10 +601,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 				{
 					Object:       "document:2",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -613,6 +636,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -650,6 +674,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   3,
 				},
 			},
 		},
@@ -687,6 +712,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   3,
 				},
 			},
 		},
@@ -714,10 +740,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 				{
 					Object:       "document:2",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -753,10 +781,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 				{
 					Object:       "document:2",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -793,6 +823,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -826,6 +857,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "resource:x",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -853,10 +885,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 				{
 					Object:       "document:2",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -883,6 +917,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:2",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -917,6 +952,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -953,10 +989,12 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 				{
 					Object:       "document:2",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -994,6 +1032,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -1032,6 +1071,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   3,
 				},
 			},
 		},
@@ -1071,6 +1111,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "resource:eng_handbook",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   3,
 				},
 			},
 		},
@@ -1111,6 +1152,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "resource:eng_handbook",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   3,
 				},
 			},
 		},
@@ -1140,6 +1182,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "node:abc",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   1,
 				},
 			},
 		},
@@ -1175,6 +1218,7 @@ func ConnectedObjectsTest(t *testing.T, ds storage.OpenFGADatastore) {
 				{
 					Object:       "document:1",
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
+					QueryCount:   2,
 				},
 			},
 		},
@@ -1283,14 +1327,17 @@ func TestConnectedObjectsRespectsMaxResults(t *testing.T, ds storage.OpenFGAData
 			allResults: []*connectedobjects.ConnectedObjectsResult{
 				{
 					Object:       "folder:folder1",
+					QueryCount:   1,
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
 				},
 				{
 					Object:       "folder:folder2",
+					QueryCount:   1,
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
 				},
 				{
 					Object:       "folder:folder3",
+					QueryCount:   1,
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
 				},
 			},
@@ -1327,14 +1374,17 @@ func TestConnectedObjectsRespectsMaxResults(t *testing.T, ds storage.OpenFGAData
 			allResults: []*connectedobjects.ConnectedObjectsResult{
 				{
 					Object:       "folder:folder1",
+					QueryCount:   1,
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
 				},
 				{
 					Object:       "folder:folder2",
+					QueryCount:   1,
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
 				},
 				{
 					Object:       "folder:folder3",
+					QueryCount:   1,
 					ResultStatus: connectedobjects.NoFurtherEvalStatus,
 				},
 			},
