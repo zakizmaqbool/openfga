@@ -40,7 +40,7 @@ type ReverseExpandRequest struct {
 // TODO combine with above?
 type reverseExpandRequest struct {
 	storeID          string
-	edge             *graph.RelationshipEdge
+	edge             *typesystem.RelationshipEdge
 	targetObjectRef  *openfgav1.RelationReference
 	sourceUserRef    IsUserRef
 	contextualTuples []*openfgav1.TupleKey
@@ -190,7 +190,7 @@ func (c *ReverseExpandQuery) execute(
 	ctx context.Context,
 	req *ReverseExpandRequest,
 	resultChan chan<- *ReverseExpandResult,
-	currentEdge *graph.RelationshipEdge,
+	currentEdge *typesystem.RelationshipEdge,
 	resolutionMetadata *ResolutionMetadata,
 ) error {
 	ctx, span := tracer.Start(ctx, "reverseExpand.Execute", trace.WithAttributes(
@@ -255,7 +255,7 @@ func (c *ReverseExpandQuery) execute(
 
 	targetObjRef := typesystem.DirectRelationReference(req.ObjectType, req.Relation)
 
-	g := graph.New(c.typesystem)
+	g := typesystem.NewGraph(c.typesystem)
 
 	edges, err := g.GetPrunedRelationshipEdges(targetObjRef, sourceUserRef)
 	if err != nil {
@@ -267,10 +267,10 @@ func (c *ReverseExpandQuery) execute(
 
 	for _, edge := range edges {
 		innerLoopEdge := edge
-		if currentEdge != nil && currentEdge.Condition == graph.RequiresFurtherEvalCondition {
+		if currentEdge != nil && currentEdge.Condition == typesystem.RequiresFurtherEvalCondition {
 			// propagate the condition to upcoming reverse expansions
 			// TODO don't mutate the edge, keep track of the previous edge's condition and use it in trySendCandidate
-			innerLoopEdge.Condition = graph.RequiresFurtherEvalCondition
+			innerLoopEdge.Condition = typesystem.RequiresFurtherEvalCondition
 		}
 		subg.Go(func() error {
 			r := &reverseExpandRequest{
@@ -282,9 +282,9 @@ func (c *ReverseExpandQuery) execute(
 			}
 
 			switch innerLoopEdge.Type {
-			case graph.DirectEdge:
+			case typesystem.DirectEdge:
 				return c.reverseExpandDirect(subgctx, r, resultChan, resolutionMetadata)
-			case graph.ComputedUsersetEdge:
+			case typesystem.ComputedUsersetEdge:
 				// lookup the rewritten target relation on the computed_userset ingress
 				return c.execute(subgctx, &ReverseExpandRequest{
 					StoreID:    storeID,
@@ -298,7 +298,7 @@ func (c *ReverseExpandQuery) execute(
 					},
 					ContextualTuples: r.contextualTuples,
 				}, resultChan, innerLoopEdge, resolutionMetadata)
-			case graph.TupleToUsersetEdge:
+			case typesystem.TupleToUsersetEdge:
 				return c.reverseExpandTupleToUserset(subgctx, r, resultChan, resolutionMetadata)
 			default:
 				return fmt.Errorf("unsupported edge type")
@@ -495,7 +495,7 @@ func (c *ReverseExpandQuery) reverseExpandDirect(
 	return subg.Wait()
 }
 
-func (c *ReverseExpandQuery) trySendCandidate(ctx context.Context, edge *graph.RelationshipEdge, candidateObject string, candidateChan chan<- *ReverseExpandResult) {
+func (c *ReverseExpandQuery) trySendCandidate(ctx context.Context, edge *typesystem.RelationshipEdge, candidateObject string, candidateChan chan<- *ReverseExpandResult) {
 	_, span := tracer.Start(ctx, "trySendCandidate", trace.WithAttributes(
 		attribute.String("object", candidateObject),
 		attribute.Bool("sent", false),
@@ -503,7 +503,7 @@ func (c *ReverseExpandQuery) trySendCandidate(ctx context.Context, edge *graph.R
 	defer span.End()
 	if _, ok := c.candidateObjectsMap.LoadOrStore(candidateObject, struct{}{}); !ok {
 		resultStatus := NoFurtherEvalStatus
-		if edge != nil && edge.Condition == graph.RequiresFurtherEvalCondition {
+		if edge != nil && edge.Condition == typesystem.RequiresFurtherEvalCondition {
 			span.SetAttributes(attribute.Bool("requires_further_eval", true))
 			resultStatus = RequiresFurtherEvalStatus
 		}

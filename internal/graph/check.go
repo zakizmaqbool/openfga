@@ -24,7 +24,37 @@ const (
 	// same values as run.DefaultConfig() (TODO break the import cycle, remove these hardcoded values and import those constants here)
 	defaultResolveNodeBreadthLimit    = 25
 	defaultMaxConcurrentReadsForCheck = math.MaxUint32
+
+	resolutionDepthCtxKey ctxKey = "resolution-depth"
 )
+
+type ctxKey string
+
+var (
+	ErrResolutionDepthExceeded = errors.New("resolution depth exceeded")
+)
+
+// ContextWithResolutionDepth attaches the provided graph resolution depth to the parent context.
+func ContextWithResolutionDepth(parent context.Context, depth uint32) context.Context {
+	return context.WithValue(parent, resolutionDepthCtxKey, depth)
+}
+
+// ResolutionDepthFromContext returns the current graph resolution depth from the provided context (if any).
+func ResolutionDepthFromContext(ctx context.Context) (uint32, bool) {
+	depth, ok := ctx.Value(resolutionDepthCtxKey).(uint32)
+	return depth, ok
+}
+
+type ResolutionMetadata struct {
+	Depth uint32
+
+	// Number of calls to ReadUserTuple + ReadUsersetTuples + Read.
+	// Thinking of a Check as a tree of evaluations:
+	// If the solution is "allowed=true", one path was found. This is the value in the leaf node of that path, plus the sum of the paths that were
+	// evaluated and potentially discarded
+	// If the solution is "allowed=false", no paths were found. This is the sum of all the reads in all the paths that had to be evaluated
+	DatastoreQueryCount uint32
+}
 
 type ResolveCheckRequest struct {
 	StoreID              string

@@ -322,3 +322,15 @@ func TestCheckDatastoreQueryCount(t *testing.T) {
 		})
 	}
 }
+
+func TestResolutionDepthContext(t *testing.T) {
+	ctx := ContextWithResolutionDepth(context.Background(), 2)
+
+	depth, ok := ResolutionDepthFromContext(ctx)
+	require.True(t, ok)
+	require.Equal(t, uint32(2), depth)
+
+	depth, ok = ResolutionDepthFromContext(context.Background())
+	require.False(t, ok)
+	require.Equal(t, uint32(0), depth)
+}
