@@ -1,10 +1,8 @@
 package graph
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/gob"
 	"fmt"
 	"time"
 
@@ -177,19 +175,32 @@ func (c *CachedCheckResolver) ResolveCheck(
 // cache key will be produced. This will result in duplicate entries.
 func checkRequestCacheKey(req *ResolveCheckRequest) (string, error) {
 
-	var b bytes.Buffer
-	if err := gob.NewEncoder(&b).Encode(req.GetTupleKey()); err != nil {
-		return "", err
+	/*
+		var b bytes.Buffer
+		if err := gob.NewEncoder(&b).Encode(req.GetTupleKey()); err != nil {
+			return "", err
+		}
+
+		tupleCacheKey := b.String()
+
+	*/
+	tupleCacheKey := req.GetTupleKey().String()
+
+	var contextualTuplesCacheKey string
+
+	/*
+		var c bytes.Buffer
+		if err := gob.NewEncoder(&c).Encode(req.GetContextualTuples()); err != nil {
+			return "", err
+		}
+
+		contextualTuplesCacheKey := c.String()
+
+	*/
+	contextualTuples := req.GetContextualTuples()
+	for _, val := range contextualTuples {
+		contextualTuplesCacheKey += val.String() + "$"
 	}
-
-	tupleCacheKey := b.String()
-
-	var c bytes.Buffer
-	if err := gob.NewEncoder(&c).Encode(req.GetContextualTuples()); err != nil {
-		return "", err
-	}
-
-	contextualTuplesCacheKey := c.String()
 
 	key := fmt.Sprintf("%s/%s/%s/%s",
 		req.GetStoreID(),
