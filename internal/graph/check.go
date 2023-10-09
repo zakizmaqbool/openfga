@@ -835,7 +835,6 @@ func (c *LocalChecker) checkSetOperation(
 	}
 
 	return func(ctx context.Context) (*ResolveCheckResponse, error) {
-
 		ctx, span := tracer.Start(ctx, reducerKey)
 		defer span.End()
 
