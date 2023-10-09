@@ -355,7 +355,7 @@ func (c *ReverseExpandQuery) reverseExpandTupleToUserset(
 	subg.SetLimit(int(c.resolveNodeBreadthLimit))
 
 	for {
-		t, err := iter.Next()
+		t, err := iter.Next(subgctx)
 		if err != nil {
 			if errors.Is(err, storage.ErrIteratorDone) {
 				break
@@ -460,7 +460,7 @@ func (c *ReverseExpandQuery) reverseExpandDirect(
 	subg.SetLimit(int(c.resolveNodeBreadthLimit))
 
 	for {
-		t, err := iter.Next()
+		t, err := iter.Next(subgctx)
 		if err != nil {
 			if errors.Is(err, storage.ErrIteratorDone) {
 				break

@@ -599,6 +599,7 @@ func convertStringArrayToUintArray(stringArray []string) []uint {
 }
 
 func (s *ServerContext) Run(ctx context.Context, config *Config) error {
+
 	tp := sdktrace.NewTracerProvider()
 	if config.Trace.Enabled {
 		s.Logger.Info(fmt.Sprintf("🕵 tracing enabled: sampling ratio is %v and sending traces to '%s', tls: %t", config.Trace.SampleRatio, config.Trace.OTLP.Endpoint, config.Trace.OTLP.TLS.Enabled))
@@ -662,7 +663,7 @@ func (s *ServerContext) Run(ctx context.Context, config *Config) error {
 	default:
 		return fmt.Errorf("storage engine '%s' is unsupported", config.Datastore.Engine)
 	}
-	datastore = storagewrappers.NewCachedOpenFGADatastore(storagewrappers.NewContextWrapper(datastore), config.Datastore.MaxCacheSize)
+	datastore = storagewrappers.NewContextWrapper(storagewrappers.NewCachedOpenFGADatastore(datastore, config.Datastore.MaxCacheSize))
 
 	s.Logger.Info(fmt.Sprintf("using '%v' storage engine", config.Datastore.Engine))
 
