@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"testing"
+	"time"
 
 	openfgav1 "github.com/openfga/api/proto/openfga/v1"
 	"github.com/openfga/openfga/pkg/storage/test"
@@ -58,4 +59,26 @@ func TestStaticTupleIteratorContextCanceled(t *testing.T) {
 
 	_, err = iter.Next(ctx)
 	require.ErrorIs(t, err, context.Canceled)
+}
+
+func TestStaticTupleIteratorContextDeadlineExceeded(t *testing.T) {
+	iter := &staticIterator{
+		tuples: []*openfgav1.Tuple{
+			{
+				Key: tuple.NewTupleKey("document:1", "viewer", "user:jon"),
+			},
+		},
+	}
+	defer iter.Stop()
+
+	deadlineCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	_, err := iter.Next(deadlineCtx)
+	require.NoError(t, err)
+
+	time.Sleep(2 * time.Second)
+
+	_, err = iter.Next(deadlineCtx)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
 }
