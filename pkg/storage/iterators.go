@@ -29,7 +29,7 @@ type emptyTupleIterator struct{}
 var _ TupleIterator = (*emptyTupleIterator)(nil)
 
 func (e *emptyTupleIterator) Next(ctx context.Context) (*openfgav1.Tuple, error) {
-	if errors.Is(ctx.Err(), context.Canceled) {
+	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
@@ -122,7 +122,7 @@ type staticIterator[T any] struct {
 func (s *staticIterator[T]) Next(ctx context.Context) (T, error) {
 	var val T
 
-	if errors.Is(ctx.Err(), context.Canceled) {
+	if ctx.Err() != nil {
 		return val, ctx.Err()
 	}
 

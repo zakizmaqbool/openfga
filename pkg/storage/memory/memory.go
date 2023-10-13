@@ -3,7 +3,6 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -50,7 +49,7 @@ func match(key *openfgav1.TupleKey, target *openfgav1.TupleKey) bool {
 }
 
 func (s *staticIterator) Next(ctx context.Context) (*openfgav1.Tuple, error) {
-	if errors.Is(ctx.Err(), context.Canceled) {
+	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 

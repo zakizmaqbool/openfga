@@ -221,7 +221,7 @@ func (t *SQLTupleIterator) ToArray(opts storage.PaginationOptions) ([]*openfgav1
 }
 
 func (t *SQLTupleIterator) Next(ctx context.Context) (*openfgav1.Tuple, error) {
-	if errors.Is(ctx.Err(), context.Canceled) {
+	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
