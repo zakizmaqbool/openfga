@@ -194,7 +194,7 @@ func resolver(ctx context.Context, concurrencyLimit uint32, resultChan chan<- ch
 
 		resolved := make(chan checkOutcome, 1)
 
-		if errors.Is(ctx.Err(), context.Canceled) {
+		if ctx.Err() != nil {
 			resultChan <- checkOutcome{nil, ctx.Err()}
 			return
 		}
@@ -440,7 +440,7 @@ func (c *LocalChecker) ResolveCheck(
 	ctx context.Context,
 	req *ResolveCheckRequest,
 ) (*ResolveCheckResponse, error) {
-	if errors.Is(ctx.Err(), context.Canceled) {
+	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
@@ -496,7 +496,7 @@ func (c *LocalChecker) checkDirect(parentctx context.Context, req *ResolveCheckR
 		ctx, span := tracer.Start(ctx, "checkDirect")
 		defer span.End()
 
-		if errors.Is(ctx.Err(), context.Canceled) {
+		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
 
@@ -548,7 +548,7 @@ func (c *LocalChecker) checkDirect(parentctx context.Context, req *ResolveCheckR
 			ctx, span := tracer.Start(ctx, "checkDirectUsersetTuples", trace.WithAttributes(attribute.String("userset", tuple.ToObjectRelationString(tk.Object, tk.Relation))))
 			defer span.End()
 
-			if errors.Is(ctx.Err(), context.Canceled) {
+			if ctx.Err() != nil {
 				return nil, ctx.Err()
 			}
 
@@ -665,7 +665,7 @@ func (c *LocalChecker) checkComputedUserset(_ context.Context, req *ResolveCheck
 		ctx, span := tracer.Start(ctx, "checkComputedUserset")
 		defer span.End()
 
-		if errors.Is(ctx.Err(), context.Canceled) {
+		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
 
@@ -702,7 +702,7 @@ func (c *LocalChecker) checkTTU(parentctx context.Context, req *ResolveCheckRequ
 		ctx, span := tracer.Start(ctx, "checkTTU")
 		defer span.End()
 
-		if errors.Is(ctx.Err(), context.Canceled) {
+		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
 
