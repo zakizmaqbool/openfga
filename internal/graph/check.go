@@ -623,6 +623,7 @@ func (c *LocalChecker) checkDirect(parentctx context.Context, req *ResolveCheckR
 							StoreID:              storeID,
 							AuthorizationModelID: req.GetAuthorizationModelID(),
 							TupleKey:             tupleKey,
+							ContextualTuples:     req.GetContextualTuples(),
 							ResolutionMetadata: &ResolutionMetadata{
 								Depth:               req.GetResolutionMetadata().Depth - 1,
 								DatastoreQueryCount: response.GetResolutionMetadata().DatastoreQueryCount,
@@ -684,6 +685,7 @@ func (c *LocalChecker) checkComputedUserset(_ context.Context, req *ResolveCheck
 				StoreID:              req.GetStoreID(),
 				AuthorizationModelID: req.GetAuthorizationModelID(),
 				TupleKey:             rewrittenTupleKey,
+				ContextualTuples:     req.GetContextualTuples(),
 				ResolutionMetadata: &ResolutionMetadata{
 					Depth:               req.GetResolutionMetadata().Depth - 1,
 					DatastoreQueryCount: req.GetResolutionMetadata().DatastoreQueryCount,
@@ -778,6 +780,7 @@ func (c *LocalChecker) checkTTU(parentctx context.Context, req *ResolveCheckRequ
 					StoreID:              req.GetStoreID(),
 					AuthorizationModelID: req.GetAuthorizationModelID(),
 					TupleKey:             tupleKey,
+					ContextualTuples:     req.GetContextualTuples(),
 					ResolutionMetadata: &ResolutionMetadata{
 						Depth:               req.GetResolutionMetadata().Depth - 1,
 						DatastoreQueryCount: req.GetResolutionMetadata().DatastoreQueryCount, // add TTU read below
