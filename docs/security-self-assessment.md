@@ -192,7 +192,14 @@ TBD
 
 ## Project Compliance
 
-When using OpenFGA you need to store relationship tuples like `{user: user: alice, relation: can_view, object: document:readme }`. We recommend users to not to store  Personal Identifiable Information like email addresses in any of the relationship tuples. This will make it simpler to comply with GDPR and other privacy regulations.
+When utilizing OpenFGA, it is imperative to store relationship tuples, such as `{user: user: alice, relation: can_view, object: document:readme }`. We strongly advise users against storing Personal Identifiable Information (PII) such as email addresses in any of the relationship tuples. 
+
+This precaution is recommended to ensure compliance with GDPR and other privacy regulations.
+
+By refraining from including PII in relationship tuples, users can simplify their compliance efforts and mitigate potential privacy risks. This practice aligns with data protection principles and safeguards user privacy, contributing to a more secure and regulatory-compliant implementation of OpenFGA.
+
+
+
 
 ## Secure Development Practices
 
