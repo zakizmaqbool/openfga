@@ -125,28 +125,35 @@ OpenFGA provides versioned authorization models, and applications should point t
 
 Every time a server endpoint is invoked, OpenFGA validates that:
 
-  - The credentials provided in the API call match the ones configured in the server.
+  - The credentials provided in API calls match the server's configured credentials. 
 
-  - Ensures that the input is a semantically valid, e.g. that a tuple is valid according to the authorization model or that the model does not have disallowed cyclical or problematic definitions
+  - Ensures that API input is a semantically valid according to the authorization model and also validate that tuples adhere to the model, 
+    avoiding disallowed cyclical or problematic definitions. 
 
-  - The payload of the API call:
+  - Payload Verification: 
   
-    - Matches the Protobuf API definitions.
-    - Validates the parameters have the proper structure, e.g. users need to be written this way 'user:<userid>'
+    - Confirm that API payloads adhere to Protobuf API definitions.  
+    - Validate parameters for proper structure, e.g. ensuring users are written in the correct format which is 'user:<userid>'
   
 **Writing an Authorization Model**
 
-OpenFGA validates that the Authorization Models are semantically valid from the server standpoint, as in they do not have cyclical or problematic definitions, or other disallowed criteria.
+  - Semantic Model Verification: OpenFGA validates that Authorization Models are semantically valid, avoiding cyclical or problematic 
+    definitions and other disallowed criteria.
 
-When a model is written a new version is created (Authorization Models in OpenFGA are immutable). The application needs to be configured to use the new version when needed, and when after it has been validated and confirmed to be working as expected.
+  - Version and Configuration: When writing a model, a new version is created (models are immutable). Applications must be configured to 
+    use the new version after validation and confirmation of expected behavior.
+
 
 **Calling the Authorization Query endpoints**
 
-When the [/check](https://openfga.dev/api/service#/Relationship%20Queries/Check) and [/list-objects](https://openfga.dev/api/service#/Relationship%20Queries/ListObjects) endpoints are called, OpenFGA needs to traverse the graph defined by the model and instated by the tuples. The graph can be very wide and deep. To protect the service from a DoSS, OpenFGA needs to limit both the number of simultaneous paths it explores, as well as the depth of the paths it traverses.
+When the [/check](https://openfga.dev/api/service#/Relationship%20Queries/Check) and [/list-objects](https://openfga.dev/api/service#/Relationship%20Queries/ListObjects) endpoints are called, OpenFGA limits the number of simultaneous paths explored and enforces depth limitations on the graph traversal. 
+
+To protect against DoS attacks, OpenFGA restricts both the number of simultaneous paths explored and the depth of paths traversed in the graph.
 
 **Upgrading OpenFGA Database Schema**
 
-When new version of OpenFGA are installed, it might imply running a database migration in the target system. To avoid downtime, migrations need to be carefully written and planned.
+Database Migration Planning: When installing new versions of OpenFGA, carefully plan and write database migrations.
+Migrations are executed to minimize downtime and ensure a smooth transition in the target system.
 
 ### Goals
 
